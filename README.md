@@ -38,4 +38,8 @@ npm run preview
 
 The static site is written to `build/` and can be served from any static host.
 
+## Deploying
+
+`npm start` serves `build/` on `$PORT` (3000 if unset), which is what Nixpacks-based hosts such as Dokploy run after `npm run build`. Node 22 or newer is required.
+
 Other scripts: `npm run check` (type-check) and `npm run format` (Prettier).
