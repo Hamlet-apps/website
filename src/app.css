@@ -1,0 +1,161 @@
+/*
+ * Hamlet design tokens and the handful of shared pieces every page uses.
+ * No global box-sizing reset on purpose: the building pages are ported with
+ * their original inline styles and expect the browser default.
+ */
+
+:root {
+	--ink: #2c2430;
+	--cream: #fff6dc;
+	--paper: #fffdf2;
+	--sea: #3d93b8;
+	--moss: #2f5a44;
+	--amber: #f4a93b;
+	--navy: #2b3a67;
+	--pine: #1f4a3a;
+	--wood: #7a5a3c;
+	--text-soft: #3b323d;
+	--text-muted: #5a4e5c;
+	--cream-dim: #e9ddbf;
+	--tan: #ebddb8;
+	--tan-ink: #5a4028;
+	--shadow: rgba(44, 36, 48, 0.45);
+
+	--font-pixel: 'Pixelify Sans', 'Silkscreen', ui-monospace, monospace;
+	--font-body: 'Manrope', system-ui, sans-serif;
+	--font-mono: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+}
+
+body {
+	margin: 0;
+	background: var(--sea);
+}
+
+/* Zero specificity, so component classes can set their own link colours. */
+:where(a) {
+	color: var(--navy);
+}
+:where(a:hover) {
+	color: #14261f;
+}
+
+/* Wooden scrollbar with a cream handle. */
+::-webkit-scrollbar {
+	width: 18px;
+	height: 14px;
+}
+::-webkit-scrollbar-track {
+	background: repeating-linear-gradient(0deg, #5e4630 0 12px, #523c29 12px 14px);
+	box-shadow: inset 3px 0 0 var(--ink);
+}
+::-webkit-scrollbar-track:horizontal {
+	background: repeating-linear-gradient(90deg, #5e4630 0 12px, #523c29 12px 14px);
+	box-shadow: inset 0 3px 0 var(--ink);
+}
+::-webkit-scrollbar-thumb {
+	min-height: 44px;
+	min-width: 44px;
+	border: 3px solid var(--ink);
+	background-color: var(--cream);
+	background-image:
+		linear-gradient(var(--ink), var(--ink)), linear-gradient(var(--ink), var(--ink)),
+		linear-gradient(var(--ink), var(--ink));
+	background-size: 8px 2px;
+	background-repeat: no-repeat;
+	background-position:
+		center calc(50% - 4px),
+		center,
+		center calc(50% + 4px);
+	box-shadow: inset -3px -3px 0 #d9c9a0;
+}
+::-webkit-scrollbar-thumb:horizontal {
+	background-image: none;
+}
+::-webkit-scrollbar-thumb:hover {
+	background-color: var(--amber);
+	box-shadow: inset -3px -3px 0 #c98620;
+}
+::-webkit-scrollbar-thumb:active {
+	background-color: var(--amber);
+	box-shadow: inset 3px 3px 0 #c98620;
+}
+::-webkit-scrollbar-button {
+	display: none;
+}
+::-webkit-scrollbar-corner {
+	background: #5e4630;
+}
+@supports not selector(::-webkit-scrollbar) {
+	html {
+		scrollbar-color: var(--cream) #5e4630;
+	}
+}
+
+/* Tiled pixel sea behind the home page and the village map. */
+.sea {
+	background-color: var(--sea);
+	background-image: url(/img/village/sea.png);
+	background-size: 144px 144px;
+	image-rendering: pixelated;
+}
+
+/* Chunky pixel button. Works on <a> and <button>. */
+.btn {
+	min-height: 44px;
+	box-sizing: border-box;
+	padding: 8px 14px;
+	background: var(--cream);
+	color: var(--ink);
+	border: 3px solid var(--ink);
+	box-shadow: 3px 3px 0 var(--shadow);
+	cursor: pointer;
+	font-family: var(--font-pixel);
+	font-size: 16px;
+	font-weight: 600;
+	text-decoration: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+.btn--dark {
+	background: var(--ink);
+	color: var(--cream);
+}
+.btn--amber {
+	background: var(--amber);
+	color: #14261f;
+}
+.btn--lg {
+	font-size: 17px;
+}
+
+/* Small "Planned" / "In progress" tag. */
+.status-tag {
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	background: var(--tan);
+	color: var(--tan-ink);
+	padding: 3px 7px;
+}
+
+/* Arrow-bulleted list. Set --bullet to recolour the arrows. */
+.arrow-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: grid;
+	gap: 8px;
+	font-size: 14.5px;
+	line-height: 1.45;
+}
+.arrow-list li {
+	display: flex;
+	gap: 10px;
+}
+.arrow-list li::before {
+	content: '→';
+	color: var(--bullet, var(--moss));
+	font-weight: 800;
+}
