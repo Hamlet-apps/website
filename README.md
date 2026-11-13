@@ -4,12 +4,12 @@ The website for Hamlet, a village of free, open-source, self-hosted tools for sm
 
 ## Pages
 
-| Route        | What it is                                                         |
-| ------------ | ------------------------------------------------------------------ |
-| `/`          | The scrolling home page                                            |
-| `/village`   | The interactive village map: drag to look around, click a building |
-| `/town-hall` | Town Hall (volunteer management)                                   |
-| `/pavilion`  | Pavilion (restaurant management)                                   |
+| Route        | What it is                                                                   |
+| ------------ | ---------------------------------------------------------------------------- |
+| `/`          | The village map on desktop-sized windows, the scrolling page on smaller ones |
+| `/village`   | The interactive village map: drag to look around, click a building           |
+| `/town-hall` | Town Hall (volunteer management)                                             |
+| `/pavilion`  | Pavilion (restaurant management)                                             |
 
 The two building pages also open inside windows on the village map.
 
