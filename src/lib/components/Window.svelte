@@ -9,7 +9,7 @@
 
 	interface Props {
 		label: string;
-		size: 'small' | 'guide' | 'large';
+		size: 'small' | 'guide' | 'feedback' | 'large';
 		title?: string;
 		icon?: IconName;
 		tone?: 'ink' | 'wood';
@@ -91,6 +91,11 @@
 		width: 920px;
 		height: 660px;
 	}
+	.win--feedback {
+		width: 920px;
+		max-height: calc(100% - 48px);
+		overflow: hidden;
+	}
 	.win--large {
 		width: 90%;
 		max-width: 1400px;
@@ -160,6 +165,7 @@
 		flex: 1;
 		padding: 24px 28px 30px;
 	}
+	.win--feedback .body,
 	.win--large .body {
 		flex: 1;
 	}

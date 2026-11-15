@@ -245,6 +245,7 @@
 				<a href="#pavilion">Pavilion</a>
 				<a href="#self-host">Self-host</a>
 				<a href={links.github}>GitHub</a>
+				<a href="/feedback">Give feedback</a>
 			</nav>
 		</div>
 	</footer>

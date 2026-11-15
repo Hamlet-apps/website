@@ -3,13 +3,14 @@
 	import Pavilion from '#lib/buildings/Pavilion.svelte';
 	import TownHall from '#lib/buildings/TownHall.svelte';
 	import Emblem from '#lib/components/Emblem.svelte';
+	import Feedback from '#lib/components/Feedback.svelte';
 	import Guidebook from '#lib/components/Guidebook.svelte';
 	import Icon from '#lib/components/Icon.svelte';
 	import Window from '#lib/components/Window.svelte';
 	import { links, upcomingBuildings } from '#lib/content.ts';
 
 	type BuildingId = 'th' | 'pv' | 'bt' | 'bk' | 'gt';
-	type WindowId = BuildingId | 'welcome' | 'guide';
+	type WindowId = BuildingId | 'welcome' | 'guide' | 'feedback';
 
 	// Everything on the map is placed in map pixels: the 960×640 art drawn at 3×.
 	// Buildings are listed back to front.
@@ -134,6 +135,12 @@
 		open = null;
 	}
 
+	// Escape or a click outside closes a window, except the feedback form:
+	// a stray click shouldn't throw away a half-written report.
+	function dismiss() {
+		if (open !== 'feedback') close();
+	}
+
 	function visit(id: BuildingId) {
 		if (!moved) show(id);
 	}
@@ -207,7 +214,7 @@
 	});
 </script>
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && close()} />
+<svelte:window onkeydown={(e) => e.key === 'Escape' && dismiss()} />
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
@@ -290,6 +297,7 @@
 		<nav aria-label="Main">
 			<button type="button" class="btn" onclick={recentre}>Back to the square</button>
 			<button type="button" class="btn" onclick={() => show('guide')}>What is Hamlet?</button>
+			<button type="button" class="btn" onclick={() => show('feedback')}>Give feedback</button>
 			<a class="btn" href={links.github}>GitHub</a>
 		</nav>
 	</header>
@@ -337,12 +345,16 @@
 			class="backdrop"
 			aria-label="Close window"
 			onpointerdown={stop}
-			onclick={close}
+			onclick={dismiss}
 		></button>
 	{/if}
 
 	{#if open === 'guide'}
 		<Guidebook onclose={close} />
+	{:else if open === 'feedback'}
+		<Window label="Give feedback" size="feedback" onclose={close}>
+			<Feedback embedded ondone={close} />
+		</Window>
 	{:else if open === 'th'}
 		<Window label="Town Hall" size="large" onclose={close}>
 			<TownHall embedded />
