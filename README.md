@@ -49,11 +49,11 @@ npm start
 
 Feature ideas are sent to each building's feature board. Bug reports are filed as GitHub issues in the building's repository, which needs a token:
 
-| Variable                                                               | What it does                                                                                                                                    |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`                                                         | A fine-grained token with "Issues: read and write" on the three repositories. Without it, the form tells people to report on GitHub themselves. |
-| `GITHUB_REPO_TOWN_HALL`, `GITHUB_REPO_PAVILION`, `GITHUB_REPO_WEBSITE` | Optional. Override where reports go, as `owner/name`.                                                                                           |
-| `ADDRESS_HEADER`                                                       | Optional. Behind a reverse proxy, set to `x-forwarded-for` so the per-visitor limit counts real visitors.                                       |
+| Variable                                                               | What it does                                                                                                                                                                                                                                                      |
+| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`                                                         | A classic personal access token with the `public_repo` scope (`repo` if any of the three repositories is private). The repositories have two owners, which one fine-grained token cannot cover. Without it, the form tells people to report on GitHub themselves. |
+| `GITHUB_REPO_TOWN_HALL`, `GITHUB_REPO_PAVILION`, `GITHUB_REPO_WEBSITE` | Optional. Override where reports go, as `owner/name`.                                                                                                                                                                                                             |
+| `ADDRESS_HEADER`                                                       | Optional. Behind a reverse proxy, set to `x-forwarded-for` so the per-visitor limit counts real visitors.                                                                                                                                                         |
 
 See `.env.example`. The endpoint allows 5 reports per visitor every 10 minutes and 40 an hour overall.
 
