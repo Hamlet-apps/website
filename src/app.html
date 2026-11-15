@@ -12,8 +12,8 @@
 			href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
 		/>
 		<script>
-			// Desktop-sized windows open the home page on the village map. Flag it before
-			// first paint; the query must match the one in src/routes/+page.svelte.
+			// Desktop-sized windows get the village map instead of the small-screen pages. Flag it before
+			// first paint; the query must match the one in src/lib/desktop.svelte.ts.
 			if (matchMedia('(min-width: 820px) and (min-height: 480px)').matches) {
 				document.documentElement.dataset.home = 'map';
 			}

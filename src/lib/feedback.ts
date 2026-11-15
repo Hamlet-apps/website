@@ -151,6 +151,62 @@ export function checkReport(report: BugReport) {
 	};
 }
 
+/** Which screen of the feedback flow is showing. Each one has its own address. */
+export interface FeedbackView {
+	/** `report` is a bug report, `request` is a feature request. */
+	kind?: 'report' | 'request';
+	/** The building a bug report is about. */
+	app?: AppId;
+}
+
+export const appSlugs: Record<AppId, string> = {
+	th: 'town-hall',
+	pv: 'pavilion',
+	web: 'website'
+};
+
+export function feedbackPath({ kind, app }: FeedbackView = {}) {
+	if (!kind) return '/feedback';
+	return kind === 'report' && app ? `/feedback/report/${appSlugs[app]}` : `/feedback/${kind}`;
+}
+
+/**
+ * Reads the part of the address after `/feedback`. Answers with the screen to
+ * show, somewhere else to send the visitor, or nothing if the address is unknown.
+ */
+export function readFeedbackPath(
+	kind?: string,
+	building?: string
+): { view: FeedbackView } | { redirect: string; external: boolean } | null {
+	if (!kind) return building ? null : { view: {} };
+
+	const app = (Object.keys(appSlugs) as AppId[]).find(
+		(id) =>
+			appSlugs[id] ===
+			building
+				?.toLowerCase()
+				.replace(/[\s_]+/g, '-')
+				.replace('townhall', 'town-hall')
+	);
+	if (building && !app) return null;
+
+	switch (kind.toLowerCase()) {
+		case 'report':
+			return { view: { kind: 'report', app } };
+		// An easy guess for the same thing.
+		case 'bug':
+			return { redirect: feedbackPath({ kind: 'report', app }), external: false };
+		case 'request': {
+			if (!app) return { view: { kind: 'request' } };
+			// A building's feature requests live on its own board.
+			const board = apps[app].featureBoard;
+			return board ? { redirect: board, external: true } : null;
+		}
+		default:
+			return null;
+	}
+}
+
 /** What the bug report endpoint answers with. */
 export type BugReportResult =
 	{ ok: true; issueUrl: string | null } | { ok: false; message: string; fallbackUrl?: string };

@@ -5,7 +5,10 @@ declare global {
 		// interface Error {}
 		// interface Locals {}
 		// interface PageData {}
-		// interface PageState {}
+		interface PageState {
+			/** The feedback screen open over the village map; null once it is closed. */
+			feedback?: import('#lib/feedback.ts').FeedbackView | null;
+		}
 		// interface Platform {}
 	}
 }

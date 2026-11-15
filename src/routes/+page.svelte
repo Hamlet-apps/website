@@ -1,26 +1,12 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import ScrollingHome from '#lib/components/ScrollingHome.svelte';
 	import VillageMap from '#lib/components/VillageMap.svelte';
+	import { watchDesktop } from '#lib/desktop.svelte.ts';
 
 	// Desktop-sized windows open on the village map; anything smaller gets the
-	// scrolling page. Keep this query in sync with the script in app.html.
-	const DESKTOP = '(min-width: 820px) and (min-height: 480px)';
-
-	// The prerendered HTML is always the scrolling page, which also serves
-	// search engines and browsers without JavaScript.
-	let desktop = $state(false);
-
-	onMount(() => {
-		const query = matchMedia(DESKTOP);
-		const update = () => {
-			desktop = query.matches;
-			document.documentElement.dataset.home = desktop ? 'map' : 'page';
-		};
-		update();
-		query.addEventListener('change', update);
-		return () => query.removeEventListener('change', update);
-	});
+	// scrolling page, which is also what search engines and browsers without
+	// JavaScript are served.
+	const desktop = watchDesktop();
 </script>
 
 <svelte:head>
@@ -31,18 +17,10 @@
 	/>
 </svelte:head>
 
-{#if desktop}
+{#if desktop.current}
 	<VillageMap />
 {:else}
-	<div class="scrolling-home">
+	<div class="small-screens">
 		<ScrollingHome />
 	</div>
 {/if}
-
-<style>
-	/* app.html marks desktop windows before first paint, so the scrolling page
-	   doesn't flash while the map is on its way. */
-	:global(html[data-home='map']) .scrolling-home {
-		display: none;
-	}
-</style>

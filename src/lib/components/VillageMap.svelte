@@ -1,5 +1,7 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { onMount, untrack } from 'svelte';
+	import { pushState } from '$app/navigation';
+	import { page } from '$app/state';
 	import Pavilion from '#lib/buildings/Pavilion.svelte';
 	import TownHall from '#lib/buildings/TownHall.svelte';
 	import Emblem from '#lib/components/Emblem.svelte';
@@ -8,9 +10,17 @@
 	import Icon from '#lib/components/Icon.svelte';
 	import Window from '#lib/components/Window.svelte';
 	import { links, upcomingBuildings } from '#lib/content.ts';
+	import { feedbackPath, type FeedbackView } from '#lib/feedback.ts';
+
+	interface Props {
+		/** Set by the /feedback pages: opens the map with the feedback window on this screen. */
+		feedback?: FeedbackView;
+	}
+
+	let { feedback }: Props = $props();
 
 	type BuildingId = 'th' | 'pv' | 'bt' | 'bk' | 'gt';
-	type WindowId = BuildingId | 'welcome' | 'guide' | 'feedback';
+	type WindowId = BuildingId | 'welcome' | 'guide';
 
 	// Everything on the map is placed in map pixels: the 960×640 art drawn at 3×.
 	// Buildings are listed back to front.
@@ -112,6 +122,20 @@
 	let dragging = $state(false);
 	let hover = $state<BuildingId | null>(null);
 	let open = $state<WindowId | null>('welcome');
+
+	// The feedback window has its own addresses (/feedback, /feedback/report, …).
+	// Opening it changes the address without leaving the map, so the map doesn't
+	// reload behind it; arriving at one of those addresses opens it straight away.
+	const mapPath = untrack(() => (feedback ? '/' : page.url.pathname));
+	const feedbackView = $derived(
+		page.state.feedback !== undefined ? page.state.feedback : (feedback ?? null)
+	);
+	const showing = $derived(feedbackView ? 'feedback' : open);
+
+	function showFeedback(view: FeedbackView) {
+		hover = null;
+		pushState(feedbackPath(view), { feedback: view });
+	}
 	let loaded = $state(false);
 
 	let root: HTMLElement;
@@ -121,7 +145,7 @@
 	let moved = false;
 
 	// The welcome note sits in a corner; everything else is modal.
-	const modal = $derived(open !== null && open !== 'welcome');
+	const modal = $derived(showing !== null && showing !== 'welcome');
 	const paused = $derived(modal || !loaded);
 
 	const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
@@ -132,13 +156,14 @@
 	}
 
 	function close() {
-		open = null;
+		if (feedbackView) pushState(mapPath, { feedback: null });
+		else open = null;
 	}
 
 	// Escape or a click outside closes a window, except the feedback form:
 	// a stray click shouldn't throw away a half-written report.
 	function dismiss() {
-		if (open !== 'feedback') close();
+		if (!feedbackView) close();
 	}
 
 	function visit(id: BuildingId) {
@@ -297,14 +322,14 @@
 		<nav aria-label="Main">
 			<button type="button" class="btn" onclick={recentre}>Back to the square</button>
 			<button type="button" class="btn" onclick={() => show('guide')}>What is Hamlet?</button>
-			<button type="button" class="btn" onclick={() => show('feedback')}>Give feedback</button>
+			<button type="button" class="btn" onclick={() => showFeedback({})}>Give feedback</button>
 			<a class="btn" href={links.github}>GitHub</a>
 		</nav>
 	</header>
 
 	<p class="hint">Drag to look around · Click a building</p>
 
-	{#if open === 'welcome'}
+	{#if showing === 'welcome'}
 		<section class="welcome" aria-label="Welcome" onpointerdown={stop}>
 			<div class="welcome-bar">
 				<Icon name="house" />
@@ -349,24 +374,24 @@
 		></button>
 	{/if}
 
-	{#if open === 'guide'}
+	{#if showing === 'guide'}
 		<Guidebook onclose={close} />
-	{:else if open === 'feedback'}
+	{:else if showing === 'feedback'}
 		<Window label="Give feedback" size="feedback" onclose={close}>
-			<Feedback embedded ondone={close} />
+			<Feedback embedded view={feedbackView ?? {}} navigate={showFeedback} ondone={close} />
 		</Window>
-	{:else if open === 'th'}
+	{:else if showing === 'th'}
 		<Window label="Town Hall" size="large" onclose={close}>
 			<TownHall embedded />
 		</Window>
-	{:else if open === 'pv'}
+	{:else if showing === 'pv'}
 		<Window label="Pavilion" size="large" onclose={close}>
 			<Pavilion embedded />
 		</Window>
 	{/if}
 
 	{#each upcomingBuildings as building (building.id)}
-		{#if open === building.id}
+		{#if showing === building.id}
 			<Window
 				label={building.name}
 				title={building.name}

@@ -4,15 +4,19 @@ The website for Hamlet, a village of free, open-source, self-hosted tools for sm
 
 ## Pages
 
-| Route        | What it is                                                                   |
-| ------------ | ---------------------------------------------------------------------------- |
-| `/`          | The village map on desktop-sized windows, the scrolling page on smaller ones |
-| `/village`   | The interactive village map: drag to look around, click a building           |
-| `/town-hall` | Town Hall (volunteer management)                                             |
-| `/pavilion`  | Pavilion (restaurant management)                                             |
-| `/feedback`  | Give feedback: report a bug or find the feature board                        |
+| Route                                                 | What it is                                                                   |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `/`                                                   | The village map on desktop-sized windows, the scrolling page on smaller ones |
+| `/village`                                            | The interactive village map: drag to look around, click a building           |
+| `/town-hall`                                          | Town Hall (volunteer management)                                             |
+| `/pavilion`                                           | Pavilion (restaurant management)                                             |
+| `/feedback`                                           | Give feedback: choose between a bug report and a feature request             |
+| `/feedback/report`                                    | Report a bug: choose the building                                            |
+| `/feedback/report/town-hall`, `/pavilion`, `/website` | The bug report form for that building                                        |
+| `/feedback/request`                                   | Request a feature: links to the feature boards                               |
+| `/feedback/request/town-hall`, `/pavilion`            | Redirect to that building's feature board                                    |
 
-The building pages and the feedback form also open inside windows on the village map.
+The building pages also open inside windows on the village map. On desktop-sized windows the `/feedback` addresses open the map with the feedback window on that screen; on smaller ones they are pages of their own.
 
 ## Layout
 

@@ -31,6 +31,12 @@ body {
 	background: var(--sea);
 }
 
+/* app.html marks desktop-sized windows before first paint, so a page meant for
+   small screens doesn't flash while the village map is on its way. */
+html[data-home='map'] .small-screens {
+	display: none;
+}
+
 /* Zero specificity, so component classes can set their own link colours. */
 :where(a) {
 	color: var(--navy);

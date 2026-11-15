@@ -1,6 +1,6 @@
 <!--
-  The "Give feedback" flow: pick bug or idea, pick the building, then either
-  fill in a bug report (filed as a GitHub issue) or get sent to the feature board.
+  The "Give feedback" flow: report a bug (filed as a GitHub issue) or find the
+  feature board for a request. Each screen has its own address under /feedback.
 -->
 <script lang="ts">
 	import { tick } from 'svelte';
@@ -9,6 +9,7 @@
 		checkReport,
 		deviceOptions,
 		emptyReport,
+		feedbackPath,
 		filledSteps,
 		impactOptions,
 		isVague,
@@ -16,25 +17,29 @@
 		oftenOptions,
 		type AppId,
 		type BugReport,
-		type BugReportResult
+		type BugReportResult,
+		type FeedbackView
 	} from '#lib/feedback.ts';
 	import Emblem from './Emblem.svelte';
 
 	interface Props {
+		/** Which screen to show. It follows the page address. */
+		view?: FeedbackView;
+		/**
+		 * Moves to another screen. Without it the screens are ordinary links;
+		 * the village map passes one so the map stays put behind the window.
+		 */
+		navigate?: (view: FeedbackView) => void;
 		/** True when shown inside a village map window instead of as its own page. */
 		embedded?: boolean;
 		/** Called from the last screen when embedded, to close the window. */
 		ondone?: () => void;
 	}
 
-	let { embedded = false, ondone }: Props = $props();
+	let { view = {}, navigate, embedded = false, ondone }: Props = $props();
 
-	type Step = 'kind' | 'app' | 'form' | 'done';
 	type ChoiceField = 'area' | 'often' | 'impact' | 'device';
 
-	let step = $state<Step>('kind');
-	let kind = $state<'bug' | 'idea' | null>(null);
-	let appId = $state<AppId | null>(null);
 	// Set once someone tries to send an incomplete report, to turn hints into prompts.
 	let tried = $state(false);
 	let report = $state<BugReport>(emptyReport());
@@ -42,30 +47,52 @@
 	let website = $state('');
 	let sending = $state(false);
 	let failure = $state<{ message: string; fallbackUrl?: string } | null>(null);
-	let issueUrl = $state<string | null>(null);
+	// Where the report went once it is sent. Null until then.
+	let sent = $state<{ app: AppId; issueUrl: string | null } | null>(null);
 	let doneHeading = $state<HTMLElement>();
 
-	const isBug = $derived(kind === 'bug');
+	const step = $derived(
+		sent
+			? 'done'
+			: view.kind === 'request'
+				? 'request'
+				: view.kind === 'report'
+					? view.app
+						? 'form'
+						: 'app'
+					: 'kind'
+	);
+	const appId = $derived(sent?.app ?? view.app ?? null);
 	const app = $derived(apps[appId ?? 'th']);
 	const example = $derived(app.example);
 
-	// The website has no feature board, so it is only offered for bugs.
-	const buildings = $derived(
-		(['th', 'pv', 'web'] as const).filter((id) => isBug || apps[id].featureBoard)
-	);
+	const reportBuildings: AppId[] = ['th', 'pv', 'web'];
+	// Feature requests go to each building's own board. The website has none.
+	const boards = (['th', 'pv'] as const).map((id) => ({ id, url: apps[id].featureBoard }));
 
 	const crumbs = $derived.by(() => {
-		const order: Step[] = ['kind', 'app', 'form', 'done'];
+		if (step === 'request') {
+			return [
+				{ label: 'Feature request', state: 'past' },
+				{ label: '2. The feature board', state: 'current' }
+			];
+		}
+		const order = ['kind', 'app', 'form', 'done'];
 		const at = order.indexOf(step);
 		const labels = [
-			kind ? (isBug ? 'Bug report' : 'Feature idea') : '1. What kind',
+			at > 0 ? 'Bug report' : '1. What kind',
 			appId ? (appId === 'web' ? 'This website' : app.name) : '2. Which building',
-			isBug || !kind ? '3. The details' : '3. The feature board'
+			'3. The details'
 		];
 		return labels.map((label, i) => ({
 			label,
 			state: order[i] === step ? 'current' : i < at ? 'past' : 'ahead'
 		}));
+	});
+
+	// Areas differ per building, so a pick made for another one no longer applies.
+	$effect(() => {
+		if (report.area && !app.areas.includes(report.area)) report.area = '';
 	});
 
 	// What the report still needs, and the running commentary under each field.
@@ -119,24 +146,14 @@
 		].filter(([, value]) => value)
 	);
 
-	function pickKind(picked: 'bug' | 'idea') {
-		kind = picked;
-		// The website can't be picked for ideas, so don't carry it over from a bug.
-		if (picked === 'idea' && appId === 'web') appId = null;
-		step = 'app';
-		tried = false;
-	}
-
-	function pickApp(id: AppId) {
-		// Areas differ per building, so a stale pick would not match.
-		if (id !== appId) report.area = '';
-		appId = id;
-		step = 'form';
-	}
-
-	function back() {
-		failure = null;
-		step = step === 'form' ? 'app' : 'kind';
+	/** Makes a link to another screen stay inside the window when the map asks for that. */
+	function to(target: FeedbackView) {
+		return (event: MouseEvent) => {
+			failure = null;
+			if (!navigate || event.metaKey || event.ctrlKey || event.shiftKey) return;
+			event.preventDefault();
+			navigate(target);
+		};
 	}
 
 	function toggle(field: ChoiceField, option: string) {
@@ -161,8 +178,7 @@
 			});
 			const result: BugReportResult = await response.json();
 			if (result.ok) {
-				issueUrl = result.issueUrl;
-				step = 'done';
+				sent = { app: appId, issueUrl: result.issueUrl };
 				await tick();
 				doneHeading?.focus();
 			} else {
@@ -175,14 +191,11 @@
 		}
 	}
 
-	function startOver() {
-		step = 'kind';
-		kind = null;
-		appId = null;
+	function startOver(event: MouseEvent) {
 		tried = false;
 		report = emptyReport();
-		failure = null;
-		issueUrl = null;
+		sent = null;
+		to({})(event);
 	}
 </script>
 
@@ -230,7 +243,11 @@
 						went wrong and what is missing. A person reads every message. What would you like to do?
 					</p>
 					<div class="kinds">
-						<button type="button" class="tile tile--tall" onclick={() => pickKind('bug')}>
+						<a
+							class="tile tile--tall"
+							href={feedbackPath({ kind: 'report' })}
+							onclick={to({ kind: 'report' })}
+						>
 							<svg
 								viewBox="0 0 12 12"
 								width="56"
@@ -249,10 +266,14 @@
 							</svg>
 							<span class="tile-name">Report a bug</span>
 							<span class="tile-text">
-								Something is broken, looks wrong, or does not do what it should.
-							</span>
-						</button>
-						<button type="button" class="tile tile--tall" onclick={() => pickKind('idea')}>
+								Something is broken, looks wrong, or does not do what it should.</span
+							></a
+						>
+						<a
+							class="tile tile--tall"
+							href={feedbackPath({ kind: 'request' })}
+							onclick={to({ kind: 'request' })}
+						>
 							<svg
 								viewBox="0 0 12 12"
 								width="56"
@@ -268,19 +289,21 @@
 								<path fill="#6B5A4C" d="M4 7h4v2H4zM5 9h2v1H5z" />
 							</svg>
 							<span class="tile-name">Suggest a feature</span>
-							<span class="tile-text">Something is missing, or could work better for you.</span>
-						</button>
+							<span class="tile-text">Something is missing, or could work better for you.</span></a
+						>
 					</div>
 				</section>
 			{:else if step === 'app'}
 				<section aria-labelledby="fb-h-app" class="tight">
-					<h2 id="fb-h-app">
-						{isBug ? 'Where did you find the bug?' : 'Which building is your idea for?'}
-					</h2>
+					<h2 id="fb-h-app">Where did you find the bug?</h2>
 					<p class="sub">Pick the building it belongs to, so it reaches the right place.</p>
 					<div class="buildings">
-						{#each buildings as id (id)}
-							<button type="button" class="tile" onclick={() => pickApp(id)}>
+						{#each reportBuildings as id (id)}
+							<a
+								class="tile"
+								href={feedbackPath({ kind: 'report', app: id })}
+								onclick={to({ kind: 'report', app: id })}
+							>
 								{#if id === 'th'}
 									<Emblem building="town-hall" size={44} />
 									<span class="tile-label">
@@ -314,13 +337,12 @@
 										<span class="tile-name">This website</span>
 										<span class="tile-text">The village map and these pages</span>
 									</span>
-								{/if}
-							</button>
-						{/each}
+								{/if}</a
+							>{/each}
 					</div>
-					<div><button type="button" class="btn btn--lg" onclick={back}>Back</button></div>
+					<div><a class="btn btn--lg" href={feedbackPath()} onclick={to({})}>Back</a></div>
 				</section>
-			{:else if step === 'form' && isBug}
+			{:else if step === 'form'}
 				<section aria-labelledby="fb-h-bug">
 					<div class="heading">
 						<h2 id="fb-h-bug">Tell us what went wrong in {app.name}</h2>
@@ -541,7 +563,11 @@
 									>
 										{sending ? 'Sending…' : 'Send bug report'}
 									</button>
-									<button type="button" class="btn btn--lg" onclick={back}>Back</button>
+									<a
+										class="btn btn--lg"
+										href={feedbackPath({ kind: 'report' })}
+										onclick={to({ kind: 'report' })}>Back</a
+									>
 								</div>
 							</div>
 						</form>
@@ -586,13 +612,39 @@
 						</aside>
 					</div>
 				</section>
-			{:else if step === 'form'}
-				<section aria-labelledby="fb-h-idea">
-					<h2 id="fb-h-idea">Ideas for {app.name} live on the feature board</h2>
+			{:else if step === 'request'}
+				<section aria-labelledby="fb-h-request">
+					<h2 id="fb-h-request">Feature requests live on the feature boards</h2>
 					<p class="lede">
 						That is where we collect suggestions, so everyone can see them and nothing gets lost in
-						an inbox.
+						an inbox. Which building is your idea for?
 					</p>
+					<div class="buildings">
+						{#each boards as board (board.id)}
+							<a class="tile" href={board.url} target="_blank" rel="noopener">
+								<Emblem building={board.id === 'th' ? 'town-hall' : 'pavilion'} size={44} />
+								<span class="tile-label">
+									<span class="tile-name">{apps[board.id].name}</span>
+									<span class="tile-text">
+										Open the feature board<span class="sr-only">(opens in a new tab)</span>
+									</span>
+								</span>
+								<svg
+									class="out"
+									width="18"
+									height="18"
+									viewBox="0 0 16 16"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2.6"
+									stroke-linecap="square"
+									aria-hidden="true"
+								>
+									<path d="M6 3 H13 V10 M13 3 L4 12" />
+								</svg>
+							</a>
+						{/each}
+					</div>
 					<ol class="how">
 						<li>
 							<span class="num" aria-hidden="true">1</span>
@@ -602,43 +654,20 @@
 						</li>
 						<li>
 							<span class="num" aria-hidden="true">2</span>
-							<span>
-								<strong>Vote for it.</strong> If it is there, add your vote. Votes tell us what to build
-								next.
-							</span>
+							<span
+								><strong>Vote for it.</strong> If it is there, add your vote. Votes tell us what to build
+								next.</span
+							>
 						</li>
 						<li>
 							<span class="num" aria-hidden="true">3</span>
-							<span>
-								<strong>Or post it.</strong> If it is new, describe what you are trying to get done and
-								why.
-							</span>
+							<span
+								><strong>Or post it.</strong> If it is new, describe what you are trying to get done and
+								why.</span
+							>
 						</li>
 					</ol>
-					<div class="actions">
-						<a
-							class="btn btn--amber btn--lg"
-							href={app.featureBoard}
-							target="_blank"
-							rel="noopener"
-						>
-							Open the feature board
-							<svg
-								width="16"
-								height="16"
-								viewBox="0 0 16 16"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2.6"
-								stroke-linecap="square"
-								aria-hidden="true"
-							>
-								<path d="M6 3 H13 V10 M13 3 L4 12" />
-							</svg>
-							<span class="sr-only">(opens in a new tab)</span>
-						</a>
-						<button type="button" class="btn btn--lg" onclick={back}>Back</button>
-					</div>
+					<div><a class="btn btn--lg" href={feedbackPath()} onclick={to({})}>Back</a></div>
 				</section>
 			{:else}
 				<section aria-labelledby="fb-h-done">
@@ -647,7 +676,7 @@
 					</h2>
 					<p class="lede">
 						Your report is in.
-						{#if issueUrl}
+						{#if sent?.issueUrl}
 							It is now an issue on GitHub, where we will post when we have a fix or a question.
 						{/if}
 					</p>
@@ -661,12 +690,12 @@
 						</ul>
 					</div>
 					<div class="actions">
-						{#if issueUrl}
-							<a class="btn btn--lg" href={issueUrl} target="_blank" rel="noopener">
+						{#if sent?.issueUrl}
+							<a class="btn btn--lg" href={sent?.issueUrl} target="_blank" rel="noopener">
 								Follow it on GitHub<span class="sr-only">(opens in a new tab)</span>
 							</a>
 						{/if}
-						<button type="button" class="btn btn--lg" onclick={startOver}>Send another</button>
+						<a class="btn btn--lg" href={feedbackPath()} onclick={startOver}>Send another</a>
 						{#if embedded}
 							<button type="button" class="btn btn--amber btn--lg" onclick={ondone}>
 								Back to the village
@@ -848,9 +877,16 @@
 		text-align: left;
 		font-family: inherit;
 	}
+	.tile {
+		text-decoration: none;
+		box-sizing: border-box;
+	}
 	.tile svg {
 		flex: none;
 		display: block;
+	}
+	.tile .out {
+		margin-left: auto;
 	}
 	.tile--tall {
 		flex: 1 1 240px;
