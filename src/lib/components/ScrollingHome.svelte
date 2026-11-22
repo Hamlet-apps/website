@@ -188,6 +188,30 @@
 					</a>
 				</div>
 			</article>
+			<article id="switchboard" class="building building--switchboard">
+				<div class="building-head">
+					<Emblem building="switchboard" />
+					<div>
+						<h3>Switchboard</h3>
+						<p class="kind">Workflows between buildings · early build</p>
+					</div>
+				</div>
+				<p class="pitch">
+					When something happens in one building, Switchboard puts the call through to the others. A
+					volunteer levels up in Town Hall, and Pavilion hands them a bigger meal card.
+				</p>
+				<ul class="arrow-list">
+					<li>Pick triggers and steps from lists, with no code</li>
+					<li>Connect a building by typing its address and approving there</li>
+					<li>Ready-made recipes you switch on</li>
+					<li>A plain log of every run, with retry</li>
+				</ul>
+				<div>
+					<a class="btn btn--lg btn--pink" href="/switchboard">
+						Visit Switchboard <span aria-hidden="true">→</span>
+					</a>
+				</div>
+			</article>
 		</div>
 	</section>
 
@@ -243,6 +267,7 @@
 			<nav aria-label="Footer">
 				<a href="#town-hall">Town Hall</a>
 				<a href="#pavilion">Pavilion</a>
+				<a href="#switchboard">Switchboard</a>
 				<a href="#self-host">Self-host</a>
 				<a href={links.github}>GitHub</a>
 				<a href="/feedback">Give feedback</a>
@@ -521,6 +546,30 @@
 	.building--pavilion {
 		background: var(--pine);
 		color: #fff;
+	}
+	/* Switchboard is the odd one out on purpose: night sky, a low sun, and a wire across the top. */
+	.building--switchboard {
+		position: relative;
+		overflow: hidden;
+		background:
+			radial-gradient(
+				circle at 100% 0,
+				#ff9a3c 0 54px,
+				#ff4f8b 54px 92px,
+				#b8306f 92px 118px,
+				transparent 119px
+			),
+			#1b1030;
+		color: #f4eefc;
+		border-color: #120a1c;
+		--bullet: #ff4f8b;
+	}
+	.building--switchboard .kind {
+		color: #cfc2e4;
+	}
+	.btn--pink {
+		background: #ff4f8b;
+		color: #1b1030;
 	}
 	.building-head {
 		display: flex;

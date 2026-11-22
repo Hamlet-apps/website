@@ -3,7 +3,7 @@
  * Shared by the form and the server endpoint, so both apply the same rules.
  */
 
-export type AppId = 'th' | 'pv' | 'web';
+export type AppId = 'th' | 'pv' | 'sb' | 'web';
 
 export interface FeedbackApp {
 	name: string;
@@ -68,6 +68,30 @@ export const apps: Record<AppId, FeedbackApp> = {
 				'The combo window stopped responding. I could not pick a side or close it, and had to reload the register.',
 			expected: 'The combo is added to the order',
 			steps: ['Open the register and sign in', 'Tap Lunch combo', 'Pick any main']
+		}
+	},
+	sb: {
+		name: 'Switchboard',
+		areas: [
+			'Connecting a building',
+			'Building a workflow',
+			'Testing a step',
+			'Runs and retries',
+			'Recipes',
+			'Settings',
+			'Somewhere else'
+		],
+		example: {
+			title: 'Dropping a field into Card label does nothing',
+			doing:
+				'I was editing the Issue staff card step and dragged person.name from the input list into Card label.',
+			happened: 'The field snapped back to the list and the setting stayed empty.',
+			expected: 'The field shows up in the setting as a pink chip',
+			steps: [
+				'Open a workflow and click a step after the trigger',
+				'Drag a field from the Input list',
+				'Drop it on a setting'
+			]
 		}
 	},
 	web: {
@@ -162,6 +186,7 @@ export interface FeedbackView {
 export const appSlugs: Record<AppId, string> = {
 	th: 'town-hall',
 	pv: 'pavilion',
+	sb: 'switchboard',
 	web: 'website'
 };
 

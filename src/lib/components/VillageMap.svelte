@@ -3,6 +3,7 @@
 	import { pushState } from '$app/navigation';
 	import { page } from '$app/state';
 	import Pavilion from '#lib/buildings/Pavilion.svelte';
+	import Switchboard from '#lib/buildings/Switchboard.svelte';
 	import TownHall from '#lib/buildings/TownHall.svelte';
 	import Emblem from '#lib/components/Emblem.svelte';
 	import Feedback from '#lib/components/Feedback.svelte';
@@ -19,7 +20,7 @@
 
 	let { feedback }: Props = $props();
 
-	type BuildingId = 'th' | 'pv' | 'bt' | 'bk' | 'gt';
+	type BuildingId = 'th' | 'pv' | 'sb' | 'bt' | 'bk' | 'gt';
 	type WindowId = BuildingId | 'welcome' | 'guide';
 
 	// Everything on the map is placed in map pixels: the 960×640 art drawn at 3×.
@@ -62,6 +63,15 @@
 		},
 		{ id: 'bk', label: 'Bank, under construction', img: 'bank', x: 1641, y: 975, w: 270, h: 222 },
 		{
+			id: 'sb',
+			label: 'Switchboard, workflows between buildings',
+			img: 'switchboard',
+			x: 1038,
+			y: 966,
+			w: 240,
+			h: 360
+		},
+		{
 			id: 'gt',
 			label: 'Gatehouse, under construction',
 			img: 'gatehouse',
@@ -74,8 +84,27 @@
 
 	const openSigns = [
 		{ building: 'town-hall', name: 'Town Hall', kind: 'Volunteer management', x: 1000, y: 478 },
-		{ building: 'pavilion', name: 'Pavilion', kind: 'Restaurant management', x: 1770, y: 586 }
+		{ building: 'pavilion', name: 'Pavilion', kind: 'Restaurant management', x: 1770, y: 586 },
+		{
+			building: 'switchboard',
+			name: 'Switchboard',
+			kind: 'Workflows between buildings',
+			x: 948,
+			y: 1150
+		}
 	] as const;
+
+	// Telegraph wires from the Switchboard's mast to the buildings it connects, in map
+	// pixels. Each sags like a real wire; `calls` are the lights that travel along it.
+	const wires = [
+		{ id: 'th', from: [1110, 987], to: [1218, 609], sag: 60, calls: [0, -2.6] },
+		{ id: 'pv', from: [1158, 987], to: [1653, 666], sag: 110, calls: [-1.3, -4.1] }
+	].map((wire) => {
+		const [x1, y1] = wire.from;
+		const [x2, y2] = wire.to;
+		const d = `M${x1} ${y1} Q${(x1 + x2) / 2} ${(y1 + y2) / 2 + wire.sag} ${x2} ${y2}`;
+		return { ...wire, d };
+	});
 
 	const comingSoonSigns = [
 		{ name: 'Bell Tower', x: 1447, y: 366 },
@@ -279,6 +308,21 @@
 			{/each}
 
 			<img class="layer" src="/img/village/overlay.png" alt="" draggable="false" />
+			<svg class="wires" viewBox="0 0 2880 1920" aria-hidden="true">
+				{#each wires as wire (wire.id)}
+					<path d={wire.d} />
+				{/each}
+			</svg>
+			{#each wires as wire (wire.id)}
+				{#each wire.calls as delay (delay)}
+					<div
+						class="call"
+						aria-hidden="true"
+						style:offset-path="path('{wire.d}')"
+						style:animation-delay="{delay}s"
+					></div>
+				{/each}
+			{/each}
 			<div class="windmill" aria-hidden="true"></div>
 			{#each villagers as [x, y, duration, delay], i (i)}
 				<div
@@ -387,6 +431,10 @@
 	{:else if showing === 'pv'}
 		<Window label="Pavilion" size="large" onclose={close}>
 			<Pavilion embedded />
+		</Window>
+	{:else if showing === 'sb'}
+		<Window label="Switchboard" size="large" onclose={close}>
+			<Switchboard embedded />
 		</Window>
 	{/if}
 
@@ -523,7 +571,52 @@
 		pointer-events: none;
 		animation: villager 1.6s steps(3) infinite;
 	}
-	.paused :is(.ship, .windmill, .villager) {
+	/* The Switchboard's wires, and the calls travelling along them. */
+	.wires {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 2880px;
+		height: 1920px;
+		pointer-events: none;
+		shape-rendering: crispEdges;
+	}
+	.wires path {
+		fill: none;
+		stroke: var(--ink);
+		stroke-width: 3;
+	}
+	.call {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 9px;
+		height: 9px;
+		background: #ff4f8b;
+		box-shadow:
+			0 0 0 3px var(--ink),
+			0 0 14px 4px rgba(255, 79, 139, 0.7);
+		offset-rotate: 0deg;
+		offset-distance: 0%;
+		pointer-events: none;
+		animation: call 5.2s steps(40) infinite;
+	}
+	@keyframes call {
+		0% {
+			offset-distance: 0%;
+			opacity: 0;
+		}
+		6%,
+		58% {
+			opacity: 1;
+		}
+		64%,
+		100% {
+			offset-distance: 100%;
+			opacity: 0;
+		}
+	}
+	.paused :is(.ship, .windmill, .villager, .call) {
 		animation-play-state: paused;
 	}
 
@@ -794,6 +887,9 @@
 		.villager,
 		.blocks span {
 			animation: none;
+		}
+		.call {
+			display: none;
 		}
 	}
 </style>
