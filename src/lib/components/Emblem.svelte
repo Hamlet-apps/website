@@ -1,6 +1,6 @@
 <script lang="ts">
 	interface Props {
-		building: 'town-hall' | 'pavilion';
+		building: 'town-hall' | 'pavilion' | 'switchboard';
 		size?: number;
 	}
 
@@ -28,6 +28,14 @@
 			stroke-linejoin="round"
 		/>
 		<path d="M27.5 52V43.5A4.5 4.5 0 0 1 36.5 43.5V52Z" fill="#2b3a67" />
+	{:else if building === 'switchboard'}
+		<!-- Two jacks joined by a patch cord. -->
+		<rect width="64" height="64" rx="17" fill="#ff4f8b" />
+		<g fill="none" stroke="#1b1030" stroke-width="5.5" stroke-linecap="round">
+			<circle cx="19" cy="19" r="6.5" />
+			<circle cx="45" cy="45" r="6.5" />
+			<path d="M24.500 23.500C35 26.500 29 41.500 39.500 44" />
+		</g>
 	{:else}
 		<rect width="64" height="64" rx="17" fill="#1f4a3a" />
 		<circle cx="32" cy="19.5" r="3.2" fill="#f4a93b" />

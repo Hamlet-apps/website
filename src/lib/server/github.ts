@@ -7,12 +7,14 @@ import { apps, type AppId, type BugReport } from '#lib/feedback.ts';
 const defaultRepos: Record<AppId, string> = {
 	th: 'Collert/town_hall',
 	pv: 'Collert/Pavilion',
+	sb: 'Hamlet-apps/Switchboard',
 	web: 'Hamlet-apps/website'
 };
 
 const repoEnv: Record<AppId, string> = {
 	th: 'GITHUB_REPO_TOWN_HALL',
 	pv: 'GITHUB_REPO_PAVILION',
+	sb: 'GITHUB_REPO_SWITCHBOARD',
 	web: 'GITHUB_REPO_WEBSITE'
 };
 

@@ -4,30 +4,32 @@ The website for Hamlet, a village of free, open-source, self-hosted tools for sm
 
 ## Pages
 
-| Route                                                 | What it is                                                                   |
-| ----------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `/`                                                   | The village map on desktop-sized windows, the scrolling page on smaller ones |
-| `/village`                                            | The interactive village map: drag to look around, click a building           |
-| `/town-hall`                                          | Town Hall (volunteer management)                                             |
-| `/pavilion`                                           | Pavilion (restaurant management)                                             |
-| `/feedback`                                           | Give feedback: choose between a bug report and a feature request             |
-| `/feedback/report`                                    | Report a bug: choose the building                                            |
-| `/feedback/report/town-hall`, `/pavilion`, `/website` | The bug report form for that building                                        |
-| `/feedback/request`                                   | Request a feature: links to the feature boards                               |
-| `/feedback/request/town-hall`, `/pavilion`            | Redirect to that building's feature board                                    |
+| Route                                                                 | What it is                                                                   |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `/`                                                                   | The village map on desktop-sized windows, the scrolling page on smaller ones |
+| `/village`                                                            | The interactive village map: drag to look around, click a building           |
+| `/town-hall`                                                          | Town Hall (volunteer management)                                             |
+| `/pavilion`                                                           | Pavilion (restaurant management)                                             |
+| `/switchboard`                                                        | Switchboard (workflows between buildings)                                    |
+| `/feedback`                                                           | Give feedback: choose between a bug report and a feature request             |
+| `/feedback/report`                                                    | Report a bug: choose the building                                            |
+| `/feedback/report/town-hall`, `/pavilion`, `/switchboard`, `/website` | The bug report form for that building                                        |
+| `/feedback/request`                                                   | Request a feature: links to the feature boards                               |
+| `/feedback/request/town-hall`, `/pavilion`                            | Redirect to that building's feature board                                    |
 
 The building pages also open inside windows on the village map. On desktop-sized windows the `/feedback` addresses open the map with the feedback window on that screen; on smaller ones they are pages of their own.
 
 ## Layout
 
 - `src/routes/` — one folder per page
-- `src/lib/buildings/` — the Town Hall and Pavilion pages, shared by their routes and the map
+- `src/lib/buildings/` — the Town Hall, Pavilion and Switchboard pages, shared by their routes and the map
 - `src/lib/components/` — icons, emblems, map windows and the guidebook
 - `src/lib/content.ts` — copy and links used on more than one page
 - `src/lib/feedback.ts` — the feedback form's questions and rules, shared with the server
 - `src/routes/api/bug-report/` — the endpoint that turns a bug report into a GitHub issue
 - `src/app.css` — design tokens and shared classes
 - `static/img/` — pixel art and screenshots
+- `tools/switchboard_sprite.py` — draws the Switchboard building for the map (needs Pillow)
 
 ## Developing
 
@@ -49,11 +51,11 @@ npm start
 
 Feature ideas are sent to each building's feature board. Bug reports are filed as GitHub issues in the building's repository, which needs a token:
 
-| Variable                                                               | What it does                                                                                                                                                                                                                                                      |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GITHUB_TOKEN`                                                         | A classic personal access token with the `public_repo` scope (`repo` if any of the three repositories is private). The repositories have two owners, which one fine-grained token cannot cover. Without it, the form tells people to report on GitHub themselves. |
-| `GITHUB_REPO_TOWN_HALL`, `GITHUB_REPO_PAVILION`, `GITHUB_REPO_WEBSITE` | Optional. Override where reports go, as `owner/name`.                                                                                                                                                                                                             |
-| `ADDRESS_HEADER`                                                       | Optional. Behind a reverse proxy, set to `x-forwarded-for` so the per-visitor limit counts real visitors.                                                                                                                                                         |
+| Variable                                                                                          | What it does                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`                                                                                    | A classic personal access token with the `public_repo` scope (`repo` if any of the four repositories is private). The repositories have two owners, which one fine-grained token cannot cover. Without it, the form tells people to report on GitHub themselves. |
+| `GITHUB_REPO_TOWN_HALL`, `GITHUB_REPO_PAVILION`, `GITHUB_REPO_SWITCHBOARD`, `GITHUB_REPO_WEBSITE` | Optional. Override where reports go, as `owner/name`.                                                                                                                                                                                                            |
+| `ADDRESS_HEADER`                                                                                  | Optional. Behind a reverse proxy, set to `x-forwarded-for` so the per-visitor limit counts real visitors.                                                                                                                                                        |
 
 See `.env.example`. The endpoint allows 5 reports per visitor every 10 minutes and 40 an hour overall.
 

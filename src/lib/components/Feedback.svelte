@@ -66,7 +66,7 @@
 	const app = $derived(apps[appId ?? 'th']);
 	const example = $derived(app.example);
 
-	const reportBuildings: AppId[] = ['th', 'pv', 'web'];
+	const reportBuildings: AppId[] = ['th', 'pv', 'sb', 'web'];
 	// Feature requests go to each building's own board. The website has none.
 	const boards = (['th', 'pv'] as const).map((id) => ({ id, url: apps[id].featureBoard }));
 
@@ -315,6 +315,12 @@
 									<span class="tile-label">
 										<span class="tile-name">Pavilion</span>
 										<span class="tile-text">Restaurant management</span>
+									</span>
+								{:else if id === 'sb'}
+									<Emblem building="switchboard" size={44} />
+									<span class="tile-label">
+										<span class="tile-name">Switchboard</span>
+										<span class="tile-text">Workflows between buildings</span>
 									</span>
 								{:else}
 									<svg

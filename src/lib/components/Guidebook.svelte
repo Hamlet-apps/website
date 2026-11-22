@@ -59,7 +59,7 @@
 		{
 			icon: 'network',
 			title: 'Buildings talk to each other',
-			text: 'Put more than one up and they connect. Town Hall events turn into Bell Tower task lists, so the plan for a big event sits next to the people doing it.'
+			text: 'Put more than one up and they connect. Switchboard carries what happens in one building to the others, and Town Hall events turn into Bell Tower task lists.'
 		},
 		{
 			icon: 'key',
@@ -144,8 +144,8 @@
 				{#each ideaCards as c (c.title)}{@render card(c)}{/each}
 			</div>
 			<p class="prose">
-				Two buildings are open today, Town Hall and Pavilion, and three more are going up. Close
-				this window and click a building to look inside.
+				Three buildings are open today, Town Hall, Pavilion and Switchboard, and three more are
+				going up. Close this window and click a building to look inside.
 			</p>
 		{:else if tab === 'how'}
 			<h3>How the village works</h3>
