@@ -525,12 +525,12 @@
 					<li>Triggers from Town Hall and Pavilion, schedules and web addresses</li>
 					<li>Look-ups, actions and HTTP requests</li>
 					<li>Filter, If and Switch steps, with a branch for each way</li>
+					<li>For each: steps that repeat for every item of a list</li>
 					<li>Run history with retry from the failed step</li>
 					<li>Two recipes</li>
 				</ul>
 				<p>Not built yet:</p>
 				<ul class="later">
-					<li>Steps that repeat over a list</li>
 					<li>One village sign-in. For now people are matched between buildings by email.</li>
 				</ul>
 			</div>
